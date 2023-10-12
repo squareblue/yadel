@@ -3,7 +3,7 @@ import ya, {
   __HTML__,
   asHtml
 } from './main';
-import { eventsByTag } from './src/eventsByTag.js'
+import { eventsByTag } from './src/events.js'
 
 const { p, b, a, div, textarea } = ya.tags;
 
