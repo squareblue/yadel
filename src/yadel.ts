@@ -1,8 +1,9 @@
 // Yet Another DOM Element Library
-import type { AnyFn, AnyObject, Appendable, VoidFn } from './utils';
+import type { AnyArgs, AnyFn, AnyObject, Appendable, VoidFn } from './utils';
 import { removeChildren } from './utils';
-import type { Tag, VoidTag } from './tags';
-import { eventTypes, tags, voidTags } from './tagList';
+import type { Tag, VoidTag, YadelTag } from './tags';
+import { tags, voidTags, YadelElement, YADEL_TAGNAME } from './tags';
+import { eventTypes } from './tagList';
 
 type YadelChildren =
   | Element
@@ -11,9 +12,10 @@ type YadelChildren =
   | number
   | Yadel
   | Array<YadelArgs | YadelChildren>
+  | undefined;
 
 type TagArg = Tag | VoidTag | Array<YadelArgs> | '';
-type OptsArg = AnyObject | YadelChildren;
+type OptsArg = (keyof Yadel) | YadelChildren | undefined;
 
 type YadelArgs = [
   TagArg,
@@ -69,22 +71,13 @@ export const __FRAG__ = '<>';
 export const regex__HTML__ = new RegExp(`^(\s*${__HTML__}\s*)+`);
 export const regex__FRAG__ = new RegExp(`^(${__FRAG__}|</>)+`);
 
-export const asHtml = (str) => (
+export const asHtml = (str: string) => (
   __HTML__ + str.replace(regex__HTML__, '')
 );
 
-export const asFragment = (str) => (
+export const asFragment = (str: string) => (
   __FRAG__ + str.replace(regex__FRAG__, '')
 );
-
-const YADEL_TAG = 'yadel-element';
-
-class YadelElement extends HTMLElement {
-  constructor() {
-    super();
-  }
-  // Does this need any custom functionality?
-}
 
 const BEFORE = 'beforebegin';
 const BEGIN = 'afterbegin';
@@ -133,15 +126,15 @@ export class Yadel {
     return document.createElement('span');
   }
 
-  static customElement(tag: string): Element {
+  static customElement(tag: YadelTag | string): Element {
     try {
       customElements.define(tag, YadelElement);
       return document.createElement(tag);
     } catch (e) {
-      console.warn(`Could not create custom element. Creating <${YADEL_TAG}> instead.`, e);
+      console.warn(`Could not create custom element. Creating <${YADEL_TAGNAME}> instead.`, e);
     }
-    customElements.define(YADEL_TAG, YadelElement);
-    return document.createElement(YADEL_TAG);
+    customElements.define(YADEL_TAGNAME, YadelElement);
+    return document.createElement(YADEL_TAGNAME);
   }
 
   constructor(...args: YadelArgs) {
@@ -158,7 +151,7 @@ export class Yadel {
 
   static create(...args: YadelArgs) {
     let [
-      tag = YADEL_TAG as TagArg,
+      tag = YADEL_TAGNAME as TagArg,
       opts = {},
       children = null
     ] = args;
@@ -174,22 +167,27 @@ export class Yadel {
 
     // iterate `opts` to do things
     for (let [method, ...args] of Object.entries(opts)) {
-      // Handle $attr shortcut
-      if (method.charAt(0) == '$') {
-        yadel.attr({
-          [method.slice(1)]: args
-        });
-        continue;
-      }
-      // Handle _prop shortcut
-      if (method.charAt(0) === '_') {
-        yadel.prop({
-          [method.slice(1)]: args
-        });
-        continue;
-      }
-      if (method in yadel) {
-        yadel[method](...args);
+      try {
+        // Handle $attr shortcut
+        if (method.charAt(0) == '$') {
+          yadel.attr({
+            [method.slice(1)]: args
+          });
+          continue;
+        }
+        // Handle _prop shortcut
+        if (method.charAt(0) === '_') {
+          yadel.prop({
+            [method.slice(1)]: args
+          });
+          continue;
+        }
+        if (method in yadel) {
+          yadel[method](...args);
+        }
+      } catch (e) {
+        // Log an error but keep going
+        console.error(e);
       }
     }
 
@@ -227,7 +225,7 @@ export class Yadel {
     }
   }
 
-  #asValue(value) {
+  #asValue(value: AnyFn | unknown) {
     return (
       typeof value === 'function'
         ? value(this.element)
@@ -328,7 +326,7 @@ export class Yadel {
       for (const listener of [].concat(listeners) as EventItem[]) {
         try {
           if (Array.isArray(listener)) {
-            this.element.addEventListener.call(this.element, ...listener);
+            this.element.addEventListener(...listener);
           } else {
             for (const [eventType, args] of Object.entries(listener) as Array<[EventType, VoidFn | EventObject[]]>) {
               this.element.addEventListener.apply(this.element, [].concat(eventType, args));
@@ -344,7 +342,7 @@ export class Yadel {
     return this;
   }
 
-  [__HTML__](htm: string | number | undefined | AnyFn) {
+  [__HTML__](htm?: string | number | undefined | AnyFn) {
     if (/string|number/.test(typeof htm)) {
       this.element.innerHTML = String(htm);
       return this;
@@ -476,7 +474,7 @@ export class Yadel {
   }
   // < PREPEND
 
-  append(children: YadelChildren, fn: AnyFn | undefined) {
+  append(children: YadelChildren, fn?: AnyFn | undefined) {
     console.log('appendChildren');
 
     if (Array.isArray(children)) {
@@ -602,7 +600,7 @@ export class Yadel {
 export function ya(...args: YadelArgs) {
   return Yadel.create(...args);
   // let [
-  //   tag = YADEL_TAG as TagArg,
+  //   tag = YADEL_TAGNAME as TagArg,
   //   opts = {},
   //   children = null
   // ] = args;
@@ -636,10 +634,17 @@ ya.create = Yadel.create;
 // Alias
 ya.render = Yadel.render;
 
+type YaTagFnArgs = [
+  OptsArg?,
+  YadelChildren?
+]
+
 // Export all tags as individual functions???
 ya.tags = [].concat(tags, voidTags).reduce((fns, tag) => {
-  fns[tag] = (...args) => ya(tag, ...args);
+  fns[tag] = (...args: YaTagFnArgs) => ya(tag, ...args);
   return fns;
-}, {});
+}, {}) as {
+  [T in Tag]: (...args: YaTagFnArgs) => Yadel;
+};
 
 export default ya;
