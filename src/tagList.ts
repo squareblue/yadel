@@ -295,7 +295,7 @@ const eventMap = {
 
 const eventTags = {};
 
-function processEventMap(element, tagName) {
+function processEventMap(element: Document | (Window & typeof globalThis) | Element, tagName: string) {
   for (const property in element) {
     if (regex_on.test(property)) {
       const evtName = property.replace(regex_on, '');
