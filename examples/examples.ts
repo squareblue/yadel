@@ -3,12 +3,18 @@ import ya, { __HTML__ } from '../src/yadel';
 
 const { p, b, a, textarea } = ya.tags;
 
-function asHTML(str) {
+function asHTML(str: string) {
   return __HTML__ + String(str).trim();
 }
 
+const a_ = a({ $href: '/link/to/nothing' }, 'Click it.');
+
+console.log(a_);
+
 p([
+  a_.get(),
   __HTML__ + 'This is some <b>HTML</b> shit right here.'
+// @ts-ignore - trouble resolving DOM lib, but it's fine
 ]).appendTo(document.body);
 
 console.log(

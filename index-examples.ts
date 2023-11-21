@@ -13,6 +13,7 @@ console.log('a()', a());
 console.log('div()', div());
 console.log('ya.tags.i()', ya.tags.i());
 
+// @ts-ignore - trouble resolving DOM lib, but it's fine
 const app_ = document.getElementById('app');
 
 const container_ = div({
@@ -23,8 +24,29 @@ const container_ = div({
   }
 }).appendTo(app_);
 
-p(__HTML__ + 'This is some HTML shit right here.')
-  .append(p(__FRAG__ + 'This is a fragment inside of a <p>?').get())
+const a_ = a({
+  $href: '/link/to/nothing',
+  style: 'color:#c00;text-decoration:none;',
+  on: [
+    ['click', (e: Event) => {
+        e.preventDefault();
+        console.log(e.target);
+    }]
+  ]
+  // on: { click: (e: Event) => {
+  //   e.preventDefault();
+  //   console.log(e.target);
+  // }}
+}, 'Click it.');
+
+console.log('a_', a_);
+
+p([
+  a_,
+  ['br'],
+  ['br'],
+  __HTML__ + 'This is some HTML stuff right here.'
+]).append(p(__FRAG__ + 'This is a fragment inside of a <p>?').get())
   .appendTo(container_.get());
 
 console.log(
