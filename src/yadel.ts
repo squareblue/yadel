@@ -225,7 +225,7 @@ export class Yadel {
     }
   }
 
-  #asValue(value: AnyFn | unknown) {
+  asValue(value: AnyFn | unknown) {
     return (
       typeof value === 'function'
         ? value(this.element)
@@ -237,7 +237,7 @@ export class Yadel {
     if (this.element instanceof Element) {
       for (const [name, value] of Object.entries(obj)) {
         try {
-          this.element.setAttribute(name, String(this.#asValue(value)));
+          this.element.setAttribute(name, String(this.asValue(value)));
         } catch (e) {
           console.error(`Error setting attribute '${name}' to value '${value}'.\n`, e);
         }
@@ -252,7 +252,7 @@ export class Yadel {
     if (this.element instanceof Element) {
       for (const [prop, value] of Object.entries(obj)) {
         try {
-          this.element[prop] = this.#asValue(value);
+          this.element[prop] = this.asValue(value);
         } catch (e) {
           console.error(`Error setting property '${prop}' to value '${value}'.\n`, e);
         }
@@ -267,7 +267,7 @@ export class Yadel {
   className(value: string | AnyFn) {
     if (this.element instanceof HTMLElement) {
       try {
-        this.element.className = this.#asValue(value);
+        this.element.className = this.asValue(value);
       } catch (e) {
         console.error(`Could not set className to value '${value}'.\n`, e);
       }
@@ -280,7 +280,7 @@ export class Yadel {
   id(value: string | AnyFn) {
     if (this.element instanceof HTMLElement) {
       try {
-        this.element.id = this.#asValue(value);
+        this.element.id = this.asValue(value);
       } catch (e) {
         console.error(`Could not set id to value '${value}'.\n`, e);
       }
@@ -351,7 +351,7 @@ export class Yadel {
       return this.element.outerHTML;
     }
     // This supports passing a function for `htm` value
-    this.element.innerHTML = String(this.#asValue(htm));
+    this.element.innerHTML = String(this.asValue(htm));
     return this;
   }
   html = this[__HTML__];
@@ -383,7 +383,7 @@ export class Yadel {
       return (this.element || this.fragment).textContent;
     }
     // This supports passing a function for `txt` value
-    (this.element || this.fragment).textContent = String(this.#asValue(txt));
+    (this.element || this.fragment).textContent = String(this.asValue(txt));
     return this;
   }
 
