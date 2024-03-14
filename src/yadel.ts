@@ -85,14 +85,23 @@ const END = 'beforeend';
 const AFTER = 'afterend';
 
 export const INSERT = {
+  // insert *before* selected element
   beforebegin: BEFORE,
-  afterbegin: BEGIN,
-  beforeend: END,
-  afterend: AFTER,
   before: BEFORE,
+
+  // insert as first child of selected element, before all other children
+  afterbegin: BEGIN,
+  begin: BEGIN,
   prepend: BEGIN,
+
+  // insert as last child of selected element, after all other children
+  beforeend: END,
+  end: END,
   append: END,
-  after: AFTER
+
+  // insert *after* selected element
+  afterend: AFTER,
+  after: AFTER,
 } as const;
 
 const insertLoc = [...Object.values(INSERT)] as const;
