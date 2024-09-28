@@ -1,4 +1,5 @@
 // Yet Another DOM Element Library
+import type * as CSS from 'csstype';
 import type { AnyArgs, AnyFn, AnyObject, Appendable, VoidFn } from './utils';
 import { removeChildren } from './utils';
 import type { Tag, VoidTag, YadelTag } from './tags';
@@ -31,9 +32,11 @@ export type ElementProperties = {
   [p: string]: string | number | AnyFn | unknown
 }
 
-export type StyleObject = {
-  [S in keyof CSSStyleDeclaration]: CSSStyleDeclaration[S]
-}
+// export type StyleObject = {
+//   [S in keyof CSSStyleDeclaration]: CSSStyleDeclaration[S]
+// }
+// ...which one???
+export type StyleObject = CSS.Properties;
 
 export type EventType = typeof eventTypes[number];
 
